@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gezegen Clicker Oyunu - 1.50 Zam Çarpanı Sürümü</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: radial-gradient(circle at center, #1b1b2f, #07070f);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        /* Başlangıç Sorumluluk Reddi Modalı */
+        #disclaimer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .disclaimer-content {
+            background: #141423;
+            border: 2px solid #00ffcc;
+            padding: 25px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,255,204,0.4);
+        }
+        .disclaimer-content h3 {
+            color: #00ffcc;
+            font-size: 20px;
+        }
+        .disclaimer-content p {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            text-align: left;
+        }
+        .checkbox-container input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #00ffcc;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #00ffcc, #0088ff);
+            border: none;
+            color: #000;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(0,255,204,0.4);
+            transition: 0.2s;
+        }
+        .start-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .start-btn:not(:disabled):hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(0,255,204,0.7);
+        }
+
+        /* Stage Geçiş ve Tebrik Popupları */
+        #popup-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2500;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(6px);
+            animation: fadeIn 0.3s ease;
+        }
+        .popup-box {
+            background: linear-gradient(135deg, #1e1e38, #0e0e1a);
+            border: 3px solid #00ffcc;
+            padding: 30px;
+            border-radius: 20px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,255,204,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            animation: scaleUp 0.3s ease;
+        }
+        .popup-box h2 {
+            color: #00ffcc;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0,255,204,0.5);
+        }
+        .popup-box p {
+            color: #ddd;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUp { from { transform: scale(0.8); } to { transform: scale(1); } }
+
+        /* Sağ Üst Ayarlar Butonu */
+        #settings-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(20, 20, 35, 0.9);
+            border: 2px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0,255,204,0.3);
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+        }
+        #settings-btn:hover {
+            background: #00ffcc;
+            color: #000;
+        }
+
+        /* Dil Seçim Modalı */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: #141423;
+            border: 2px solid #00ffcc;
+            padding: 25px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0,255,204,0.4);
+        }
+        .modal-content h3 {
+            color: #00ffcc;
+        }
+        .lang-select {
+            background: #1e1e38;
+            border: 2px solid #00ffcc;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+        }
+        .save-btn {
+            background: linear-gradient(135deg, #00ffcc, #0088ff);
+            border: none;
+            color: #000;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(0,255,204,0.4);
+            transition: 0.2s;
+        }
+        .save-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(0,255,204,0.7);
+        }
+
+        /* Üst Skor Paneli */
+        #stats-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+            margin-top: 10px;
+            background: rgba(15, 15, 25, 0.85);
+            padding: 12px 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        #money-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        }
+        #cps-display {
+            font-size: 16px;
+            color: #ffaa00;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+        }
+
+        /* Ortadaki Tıklanabilir Gezegen Alanı */
+        #planet-container {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            transition: transform 0.1s ease;
+        }
+        #planet-container:active {
+            transform: scale(0.94);
+        }
+        #planet-name-tag {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0,255,204,0.5);
+            letter-spacing: 1px;
+        }
+        #planet {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4facfe, #00ba32 40%, #003366 80%, #001122);
+            box-shadow: 0 0 40px rgba(0, 255, 100, 0.4), inset -20px -20px 35px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* Tıklama Efekti */
+        .click-popup {
+            position: absolute;
+            color: #00ffcc;
+            font-weight: bold;
+            font-size: 18px;
+            pointer-events: none;
+            animation: floatUp 0.7s ease-out forwards;
+            text-shadow: 0 0 5px #000;
+            z-index: 200;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
+        }
+
+        /* Dükkan / Stage Alanı */
+        #shop-container {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 40px;
+        }
+
+        /* 3 Stage Kutucuk Tasarımı */
+        #stages-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .stage-tab {
+            flex: 1;
+            background: rgba(20, 20, 35, 0.8);
+            border: 2px solid #444;
+            color: #aaa;
+            padding: 10px 5px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stage-tab.active {
+            border-color: #00ffcc;
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.15);
+            box-shadow: 0 0 10px rgba(0,255,204,0.3);
+        }
+
+        /* Geniş Dikdörtgen Buton Tasarımı */
+        .upgrade-btn {
+            background: linear-gradient(135deg, #1e1e38, #121222);
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .upgrade-btn.locked {
+            border-color: #333;
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #111118, #0a0a0f);
+        }
+        .btn-top {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 16px;
+            color: #fff;
+        }
+        .btn-desc {
+            font-size: 13px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Başlangıç Sorumluluk Reddi Modalı -->
+    <div id="disclaimer-modal">
+        <div class="disclaimer-content">
+            <h3 id="disc-title">⚠️ Yasal Uyarı</h3>
+            <p id="disc-text">Bu oyun kimseyi herhangi bir şeye yöneltme amacı taşımaz. Olası olaylardan veya durumlardan hiçbir şekilde oyun ve yapımcısı mesul olmayacaktır.</p>
+            <label class="checkbox-container">
+                <input type="checkbox" id="accept-checkbox" onchange="toggleAccept()">
+                <span id="disc-accept">Okudum ve kabul ediyorum</span>
+            </label>
+            <button class="start-btn" id="start-game-btn" disabled onclick="closeDisclaimer()">Oyuna Başla</button>
+        </div>
+    </div>
+
+    <!-- Stage Geçiş ve Tebrik Popupları -->
+    <div id="popup-modal">
+        <div class="popup-box">
+            <h2 id="popup-title">Tebrikler!</h2>
+            <p id="popup-text">Açıklama metni buraya gelecek...</p>
+            <button class="save-btn" onclick="closePopup()">Devam Et</button>
+        </div>
+    </div>
+
+    <!-- Sağ Üst Ayarlar Butonu -->
+    <button id="settings-btn" onclick="toggleModal()">⚙️ Ayarlar</button>
+
+    <!-- Dil Seçim Modalı -->
+    <div id="modal">
+        <div class="modal-content">
+            <h3 id="txt-modal-title">Dil Seçimi / Language</h3>
+            <select id="lang-selector" class="lang-select">
+                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+            <button class="save-btn" onclick="saveAndCloseModal()" id="txt-save-btn">Kaydet ve Kapat</button>
+        </div>
+    </div>
+
+    <!-- Üst Skor Paneli -->
+    <div id="stats-container">
+        <div id="money-display">0 🪙</div>
+        <div id="cps-display">Saniyede Kazanç: 0 🪙</div>
+    </div>
+
+    <!-- Orta Alan: Tıklanan Aktif Gezegen -->
+    <div id="planet-container" onclick="clickPlanet(event)">
+        <div id="planet-name-tag">🌍 <span id="active-planet-name">Dünya (Ana Üs)</span></div>
+        <div id="planet"></div>
+    </div>
+
+    <!-- Alt Kısım: Stage Kutucukları ve İçerik Listesi -->
+    <div id="shop-container">
+        <!-- 3 Stage Buton Kutucuğu -->
+        <div id="stages-tabs">
+            <div class="stage-tab active" id="tab-1" onclick="switchStage(1)">Stage 1<br><span style="font-size:10px; opacity:0.8;">(Aşama 1)</span></div>
+            <div class="stage-tab" id="tab-2" onclick="switchStage(2)">Stage 2<br><span style="font-size:10px; opacity:0.8;">(Aşama 2)</span></div>
+            <div class="stage-tab" id="tab-3" onclick="switchStage(3)">Stage 3<br><span style="font-size:10px; opacity:0.8;">(Aşama 3)</span></div>
+        </div>
+
+        <!-- Tıklama Gücü (Her Stage'in başında görünür) -->
+        <div class="upgrade-btn" onclick="buyClickUpgrade()">
+            <div class="btn-top">
+                <span id="click-btn-title">⚡ Tıklama Gücü</span>
+                <span id="click-cost">50 🪙</span>
+            </div>
+            <div class="btn-desc">
+                <span id="click-desc">Tık Başına Kazanç artar</span>
+                <span id="click-lvl">Seviye: 1</span>
+            </div>
+        </div>
+
+        <!-- Gezegenler Listesi (Seçili Stage'e göre değişir) -->
+        <div id="planets-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
+<script>
+    let money = 0;
+    let clickPower = 1;
+    let clickUpgradeCost = 50;
+    let clickLevel = 1;
+    let currentLang = 'tr';
+    let currentStage = 1;
+
+    let stage2UnlockedNotified = false;
+    let stage3UnlockedNotified = false;
+    let gameCompletedNotified = false;
+
+    // Metin Çevirileri ve Genişletilmiş Sayı Basamakları Suffix Dizisi
+    const langData = {
+        tr: {
+            settings: "⚙️ Ayarlar",
+            modalTitle: "Dil Seçimi / Language",
+            saveBtn: "Kaydet ve Kapat",
+            clickTitle: "⚡ Tıklama Gücü",
+            clickDesc: "Tık Başına Kazanç artar",
+            level: "Seviye",
+            cpsText: "Saniyede Kazanç",
+            basePlanet: "Dünya (Ana Üs)",
+            discTitle: "⚠️ Yasal Uyarı",
+            discText: "Bu oyun kimseyi herhangi bir şeye yöneltme amacı taşımaz. Olası olaylardan veya durumlardan hiçbir şekilde oyun ve yapımcısı mesul olmayacaktır.",
+            discAccept: "Okudum ve kabul ediyorum",
+            startBtn: "Oyuna Başla",
+            suffixes: ["", "Bin", "Milyon", "Milyar", "Trilyon", "Katrilyon", "Kentilyon", "Sekstilyon", "Septilyon", "Oktilyon", "Nonilyon", "Desilyon", "Undesilyon", "Dodesilyon", "Tredesilyon", "Kattuordesilyon", "Kvindesilyon", "Seksdesilyon", "Septendesilyon", "Oktodesilyon", "Novemdesilyon", "Vigintilyon"]
+        },
+        en: {
+            settings: "⚙️ Settings",
+            modalTitle: "Language Settings",
+            saveBtn: "Save & Close",
+            clickTitle: "⚡ Click Power",
+            clickDesc: "Increases Click Value",
+            level: "Level",
+            cpsText: "Gain Per Second",
+            basePlanet: "Earth (Main Base)",
+            discTitle: "⚠️ Disclaimer",
+            discText: "This game does not aim to direct anyone to anything. The game and its developer will not be held responsible for any events or situations.",
+            discAccept: "I have read and accept",
+            startBtn: "Start Game",
+            suffixes: ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "UDc", "DDc", "TDc", "QaDc", "QiDc", "SxDc", "SpDc", "OcDc", "NoDc", "Vg"]
+        }
+    };
+
+    function toggleAccept() {
+        const checkbox = document.getElementById('accept-checkbox');
+        const btn = document.getElementById('start-game-btn');
+        btn.disabled = !checkbox.checked;
+    }
+
+    function closeDisclaimer() {
+        document.getElementById('disclaimer-modal').style.display = 'none';
+    }
+
+    // Gezegen Fiyatları ESKİ ORİJİNAL HALİNDE.
+    // Adet zam çarpanı (mult) tam 1.50 olarak ayarlandı, devasa sayılara doğru akıcı biçimde hafifçe optimize edildi.
+    const planets = [
+        // --- STAGE 1 (18 Gezegen) ---
+        { id: 1, stage: 1, nameTr: "🌍 Dünya", nameEn: "🌍 Earth", color: "radial-gradient(circle at 30% 30%, #4facfe, #00ba32 40%, #003366 80%, #001122)", glow: "rgba(0, 255, 100, 0.4)", cost: 100, cps: 1.2, count: 0, mult: 1.50 },
+        { id: 2, stage: 1, nameTr: "🌕 Ay", nameEn: "🌕 Moon", color: "radial-gradient(circle at 30% 30%, #dcdcdc, #8c8c8c 40%, #404040 80%, #1a1a1a)", glow: "rgba(200, 200, 200, 0.4)", cost: 750, cps: 9, count: 0, mult: 1.50 },
+        { id: 3, stage: 1, nameTr: "🔴 Mars", nameEn: "🔴 Mars", color: "radial-gradient(circle at 30% 30%, #ff5e36, #c42300 40%, #611100 80%, #2b0500)", glow: "rgba(255, 94, 54, 0.4)", cost: 5500, cps: 65, count: 0, mult: 1.50 },
+        { id: 4, stage: 1, nameTr: "🟠 Venüs", nameEn: "🟠 Venus", color: "radial-gradient(circle at 30% 30%, #ffd700, #ff8c00 40%, #b85200 80%, #5e2600)", glow: "rgba(255, 215, 0, 0.4)", cost: 38000, cps: 450, count: 0, mult: 1.45 },
+        { id: 5, stage: 1, nameTr: "🪐 Merkür", nameEn: "🪐 Mercury", color: "radial-gradient(circle at 30% 30%, #aaaaaa, #707070 40%, #3d3d3d 80%, #141414)", glow: "rgba(170, 170, 170, 0.4)", cost: 240000, cps: 2800, count: 0, mult: 1.42 },
+        { id: 6, stage: 1, nameTr: "🟠 Jüpiter", nameEn: "🟠 Jupiter", color: "radial-gradient(circle at 30% 30%, #e3bb76, #b07d3b 40%, #734a12 80%, #3b2202)", glow: "rgba(227, 187, 118, 0.4)", cost: 1500000, cps: 18000, count: 0, mult: 1.38 },
+        { id: 7, stage: 1, nameTr: "🪐 Satürn", nameEn: "🪐 Saturn", color: "radial-gradient(circle at 30% 30%, #faebd7, #d2b48c 40%, #8b6914 80%, #423103)", glow: "rgba(210, 180, 140, 0.4)", cost: 9000000, cps: 105000, count: 0, mult: 1.35 },
+        { id: 8, stage: 1, nameTr: "🔵 Uranüs", nameEn: "🔵 Uranus", color: "radial-gradient(circle at 30% 30%, #7fffd4, #00ced1 40%, #008b8b 80%, #004040)", glow: "rgba(127, 255, 212, 0.4)", cost: 55000000, cps: 650000, count: 0, mult: 1.32 },
+        { id: 9, stage: 1, nameTr: "🔵 Neptün", nameEn: "🔵 Neptune", color: "radial-gradient(circle at 30% 30%, #1e90ff, #0000cd 40%, #00008b 80%, #000033)", glow: "rgba(30, 144, 255, 0.4)", cost: 320000000, cps: 3800000, count: 0, mult: 1.28 },
+        { id: 10, stage: 1, nameTr: "🟣 Pluto", nameEn: "🟣 Pluto", color: "radial-gradient(circle at 30% 30%, #dda0dd, #ba55d3 40%, #8b008b 80%, #300030)", glow: "rgba(186, 85, 211, 0.4)", cost: 1800000000, cps: 21000000, count: 0, mult: 1.25 },
+        { id: 11, stage: 1, nameTr: "☄️ Titan", nameEn: "☄️ Titan", color: "radial-gradient(circle at 30% 30%, #ff8c00, #b8860b 40%, #556b2f 80%, #2f4f4f)", glow: "rgba(255, 140, 0, 0.4)", cost: 10000000000, cps: 120000000, count: 0, mult: 1.22 },
+        { id: 12, stage: 1, nameTr: "🌕 Europa", nameEn: "🌕 Europa", color: "radial-gradient(circle at 30% 30%, #f0f8ff, #b0e0e6 40%, #4682b4 80%, #20b2aa)", glow: "rgba(176, 224, 230, 0.4)", cost: 60000000000, cps: 700000000, count: 0, mult: 1.20 },
+        { id: 13, stage: 1, nameTr: "🔥 Gliese 581c", nameEn: "🔥 Gliese 581c", color: "radial-gradient(circle at 30% 30%, #ff4500, #dc143c 40%, #8b0000 80%, #4a0000)", glow: "rgba(255, 69, 0, 0.4)", cost: 350000000000, cps: 4000000000, count: 0, mult: 1.18 },
+        { id: 14, stage: 1, nameTr: "💎 Kepler-22b", nameEn: "💎 Kepler-22b", color: "radial-gradient(circle at 30% 30%, #00ffff, #008080 40%, #000080 80%, #000020)", glow: "rgba(0, 255, 255, 0.4)", cost: 2000000000000, cps: 24000000000, count: 0, mult: 1.16 },
+        { id: 15, stage: 1, nameTr: "🌀 Pulsar Dünyası", nameEn: "🌀 Pulsar World", color: "radial-gradient(circle at 30% 30%, #ee82ee, #9400d3 40%, #4b0082 80%, #191970)", glow: "rgba(238, 130, 238, 0.4)", cost: 12000000000000, cps: 140000000000, count: 0, mult: 1.15 },
+        { id: 16, stage: 1, nameTr: "⭐ Proxima Centauri b", nameEn: "⭐ Proxima Centauri b", color: "radial-gradient(circle at 30% 30%, #ffff00, #ff4500 40%, #8b4513 80%, #2b1100)", glow: "rgba(255, 215, 0, 0.5)", cost: 70000000000000, cps: 800000000000, count: 0, mult: 1.15 },
+        { id: 17, stage: 1, nameTr: "🌌 Andromeda Kolonisi", nameEn: "🌌 Andromeda Colony", color: "radial-gradient(circle at 30% 30%, #ff1493, #8a2be2 40%, #483d8b 80%, #0f0524)", glow: "rgba(255, 20, 147, 0.5)", cost: 400000000000000, cps: 4800000000000, count: 0, mult: 1.14 },
+        { id: 18, stage: 1, nameTr: "✨ Evrenin Kalbi", nameEn: "✨ Heart of Universe", color: "radial-gradient(circle at 30% 30%, #ffffff, #00ffff 40%, #ff00ff 80%, #050014)", glow: "rgba(255, 255, 255, 0.7)", cost: 2500000000000000, cps: 30000000000000, count: 0, mult: 1.14 },
+
+        // --- STAGE 2 (12 Gezegen) ---
+        { id: 19, stage: 2, nameTr: "🌀 Orion Bulutsusu", nameEn: "🌀 Orion Nebula", color: "radial-gradient(circle at 30% 30%, #ff00ff, #800080 40%, #300030 80%, #100010)", glow: "rgba(255, 0, 255, 0.5)", cost: 15000000000000000, cps: 180000000000000, count: 0, mult: 1.13 },
+        { id: 20, stage: 2, nameTr: "💫 Vega Sistemi", nameEn: "💫 Vega System", color: "radial-gradient(circle at 30% 30%, #00ffff, #0044ff 40%, #001166 80%, #000522)", glow: "rgba(0, 255, 255, 0.5)", cost: 90000000000000000, cps: 1000000000000000, count: 0, mult: 1.13 },
+        { id: 21, stage: 2, nameTr: "⚡ Sirius A", nameEn: "⚡ Sirius A", color: "radial-gradient(circle at 30% 30%, #ffffff, #88ccff 40%, #2266aa 80%, #051122)", glow: "rgba(255, 255, 255, 0.6)", cost: 500000000000000000, cps: 6000000000000000, count: 0, mult: 1.12 },
+        { id: 22, stage: 2, nameTr: "🔥 Rigel Üssü", nameEn: "🔥 Rigel Base", color: "radial-gradient(circle at 30% 30%, #ffaa00, #ff3300 40%, #881100 80%, #220200)", glow: "rgba(255, 170, 0, 0.5)", cost: 3000000000000000000, cps: 35000000000000000, count: 0, mult: 1.12 },
+        { id: 23, stage: 2, nameTr: "🌌 Samanyolu Merkez", nameEn: "🌌 Milky Way Core", color: "radial-gradient(circle at 30% 30%, #aa00ff, #5500aa 40%, #220044 80%, #0a001a)", glow: "rgba(170, 0, 255, 0.5)", cost: 18000000000000000000, cps: 200000000000000000, count: 0, mult: 1.11 },
+        { id: 24, stage: 2, nameTr: "☄️ Titanik Kuyruklu Yıldız", nameEn: "☄️ Titanic Comet", color: "radial-gradient(circle at 30% 30%, #00ff88, #008844 40%, #00331a 80%, #001105)", glow: "rgba(0, 255, 136, 0.5)", cost: 100000000000000000000, cps: 1200000000000000000, count: 0, mult: 1.11 },
+        { id: 25, stage: 2, nameTr: "🪐 Kronos Gezegeni", nameEn: "🪐 Kronos Planet", color: "radial-gradient(circle at 30% 30%, #ffbb00, #aa7700 40%, #553300 80%, #1a1000)", glow: "rgba(255, 187, 0, 0.5)", cost: 600000000000000000000, cps: 7000000000000000000, count: 0, mult: 1.10 },
+        { id: 26, stage: 2, nameTr: "💎 Antares Krallığı", nameEn: "💎 Antares Kingdom", color: "radial-gradient(circle at 30% 30%, #ff3333, #990000 40%, #440000 80%, #150000)", glow: "rgba(255, 51, 51, 0.5)", cost: 3500000000000000000000, cps: 40000000000000000000, count: 0, mult: 1.10 },
+        { id: 27, stage: 2, nameTr: "🌀 Cygnus X-1", nameEn: "🌀 Cygnus X-1", color: "radial-gradient(circle at 30% 30%, #333333, #111111 40%, #050505 80%, #000000)", glow: "rgba(100, 100, 100, 0.5)", cost: 20000000000000000000000, cps: 240000000000000000000, count: 0, mult: 1.09 },
+        { id: 28, stage: 2, nameTr: "✨ Canopus Dünyası", nameEn: "✨ Canopus World", color: "radial-gradient(circle at 30% 30%, #ffff88, #ffaa22 40%, #885500 80%, #221100)", glow: "rgba(255, 255, 136, 0.5)", cost: 120000000000000000000000, cps: 1400000000000000000000, count: 0, mult: 1.09 },
+        { id: 29, stage: 2, nameTr: "⭐ Arcturus Üssü", nameEn: "⭐ Arcturus Base", color: "radial-gradient(circle at 30% 30%, #ff8844, #aa3300 40%, #551100 80%, #1a0500)", glow: "rgba(255, 136, 68, 0.5)", cost: 700000000000000000000000, cps: 8000000000000000000000, count: 0, mult: 1.09 },
+        { id: 30, stage: 2, nameTr: "🌌 Sombrero Galaksisi", nameEn: "🌌 Sombrero Galaxy", color: "radial-gradient(circle at 30% 30%, #ffddaa, #aa7744 40%, #553322 80%, #1a100a)", glow: "rgba(255, 221, 170, 0.5)", cost: 4000000000000000000000000, cps: 48000000000000000000000, count: 0, mult: 1.09 },
+
+        // --- STAGE 3 (12 Gezegen) ---
+        { id: 31, stage: 3, nameTr: "🌀 Yaratılış Sütunları", nameEn: "🌀 Pillars of Creation", color: "radial-gradient(circle at 30% 30%, #00ffcc, #006655 40%, #002219 80%, #000805)", glow: "rgba(0, 255, 204, 0.6)", cost: 25000000000000000000000000, cps: 300000000000000000000000, count: 0, mult: 1.08 },
+        { id: 32, stage: 3, nameTr: "💫 Kuasarlar Diyarı", nameEn: "💫 Quasars Realm", color: "radial-gradient(circle at 30% 30%, #ff0055, #880033 40%, #330011 80%, #110005)", glow: "rgba(255, 0, 85, 0.6)", cost: 150000000000000000000000000, cps: 1800000000000000000000000, count: 0, mult: 1.08 },
+        { id: 33, stage: 3, nameTr: "⚡ Magnetar Çekirdeği", nameEn: "⚡ Magnetar Core", color: "radial-gradient(circle at 30% 30%, #00ffff, #0088ff 40%, #003366 80%, #001122)", glow: "rgba(0, 255, 255, 0.6)", cost: 900000000000000000000000000, cps: 10000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 34, stage: 3, nameTr: "🔥 Süpernova Kalıntısı", nameEn: "🔥 Supernova Remnant", color: "radial-gradient(circle at 30% 30%, #ff5500, #aa2200 40%, #440a00 80%, #150200)", glow: "rgba(255, 85, 0, 0.6)", cost: 5000000000000000000000000000, cps: 60000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 35, stage: 3, nameTr: "🌌 Laniakea Süperkümesi", nameEn: "🌌 Laniakea Supercluster", color: "radial-gradient(circle at 30% 30%, #cc00ff, #660088 40%, #220033 80%, #0a0011)", glow: "rgba(204, 0, 255, 0.6)", cost: 30000000000000000000000000000, cps: 350000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 36, stage: 3, nameTr: "☄️ Karanlık Madde Üssü", nameEn: "☄️ Dark Matter Base", color: "radial-gradient(circle at 30% 30%, #444466, #222233 40%, #0f0f15 80%, #050508)", glow: "rgba(100, 100, 150, 0.6)", cost: 180000000000000000000000000000, cps: 2000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 37, stage: 3, nameTr: "🪐 Multiverse Geçidi", nameEn: "🪐 Multiverse Gate", color: "radial-gradient(circle at 30% 30%, #ff00ff, #00ffff 40%, #0000ff 80%, #110022)", glow: "rgba(255, 0, 255, 0.7)", cost: 1000000000000000000000000000000, cps: 12000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 38, stage: 3, nameTr: "💎 Akatşa Boyutu", nameEn: "💎 Akasha Dimension", color: "radial-gradient(circle at 30% 30%, #ffffff, #ffcc00 40%, #886600 80%, #221900)", glow: "rgba(255, 255, 255, 0.7)", cost: 6000000000000000000000000000000, cps: 70000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 39, stage: 3, nameTr: "🌀 Zaman Çizgisi Merkezi", nameEn: "🌀 Timeline Center", color: "radial-gradient(circle at 30% 30%, #00ff88, #0044ff 40%, #001144 80%, #000311)", glow: "rgba(0, 255, 136, 0.7)", cost: 35000000000000000000000000000000, cps: 400000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 40, stage: 3, nameTr: "✨ Tanrısal Boyut", nameEn: "✨ Divine Dimension", color: "radial-gradient(circle at 30% 30%, #ffffcc, #ff00ff 40%, #660066 80%, #1a001a)", glow: "rgba(255, 255, 200, 0.8)", cost: 200000000000000000000000000000000, cps: 2400000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 41, stage: 3, nameTr: "⭐ Sonsuzluk Tahtı", nameEn: "⭐ Throne of Infinity", color: "radial-gradient(circle at 30% 30%, #ffffff, #ff0000 40%, #880000 80%, #220000)", glow: "rgba(255, 255, 255, 0.8)", cost: 1200000000000000000000000000000000, cps: 14000000000000000000000000000000, count: 0, mult: 1.08 },
+        { id: 42, stage: 3, nameTr: "🌌 Büyük Patlama Noktası", nameEn: "🌌 Big Bang Point", color: "radial-gradient(circle at 30% 30%, #ffffff, #00ffff 40%, #ff00ff 80%, #000000)", glow: "rgba(255, 255, 255, 1.0)", cost: 70000000000000000000000000000000000, cps: 80000000000000000000000000000000, count: 0, mult: 1.08 }
+    ];
+
+    let activePlanetName = "Dünya (Ana Üs)";
+
+    function toggleModal() {
+        const modal = document.getElementById('modal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function saveAndCloseModal() {
+        const selector = document.getElementById('lang-selector');
+        currentLang = selector.value;
+        toggleModal();
+        updateStaticTexts();
+        buildPlanetButtons();
+        updateUI();
+    }
+
+    function switchStage(stageNum) {
+        currentStage = stageNum;
+        document.querySelectorAll('.stage-tab').forEach(tab => tab.classList.remove('active'));
+        document.getElementById(`tab-${stageNum}`).classList.add('active');
+        buildPlanetButtons();
+        updateUI();
+    }
+
+    function updateStaticTexts() {
+        const t = langData[currentLang];
+        document.getElementById('settings-btn').innerText = t.settings;
+        document.getElementById('txt-modal-title').innerText = t.modalTitle;
+        document.getElementById('txt-save-btn').innerText = t.saveBtn;
+        document.getElementById('click-btn-title').innerText = t.clickTitle;
+        document.getElementById('click-desc').innerText = t.clickDesc;
+        document.getElementById('active-planet-name').innerText = activePlanetName;
+
+        document.getElementById('disc-title').innerText = t.discTitle;
+        document.getElementById('disc-text').innerText = t.discText;
+        document.getElementById('disc-accept').innerText = t.discAccept;
+        document.getElementById('start-game-btn').innerText = t.startBtn;
+    }
+
+    const planetsListEl = document.getElementById('planets-list');
+
+    function buildPlanetButtons() {
+        planetsListEl.innerHTML = '';
+        const filteredPlanets = planets.filter(p => p.stage === currentStage);
+        
+        filteredPlanets.forEach(p => {
+            let pName = currentLang === 'tr' ? p.nameTr : p.nameEn;
+            const btn = document.createElement('div');
+            btn.className = 'upgrade-btn locked';
+            btn.id = `planet-btn-${p.id}`;
+            btn.onclick = () => buyPlanet(p.id);
+            btn.innerHTML = `
+                <div class="btn-top">
+                    <span id="p-name-${p.id}">${pName}</span>
+                    <span id="p-cost-${p.id}">${formatNum(p.cost)} 🪙</span>
+                </div>
+                <div class="btn-desc">
+                    <span id="p-cps-${p.id}">Saniyede +${formatNum(p.cps)}</span>
+                    <span id="p-count-${p.id}">Sahip: 0</span>
+                </div>
+            `;
+            planetsListEl.appendChild(btn);
+        });
+    }
+
+    function formatNum(num) {
+        if (num < 1000) return num.toLocaleString();
+        const suffixes = langData[currentLang].suffixes;
+        const exponent = Math.floor(Math.log10(num));
+        const suffixIndex = Math.floor(exponent / 3);
+        
+        if (suffixIndex >= suffixes.length) {
+            return num.toExponential(2);
+        }
+        
+        const scaledNum = num / Math.pow(10, suffixIndex * 3);
+        return scaledNum.toFixed(2) + " " + suffixes[suffixIndex];
+    }
+
+    function clickPlanet(event) {
+        money += clickPower;
+        updateUI();
+        createPopup(event.clientX, event.clientY, `+${formatNum(clickPower)}`);
+    }
+
+    function createPopup(x, y, text) {
+        const popup = document.createElement('div');
+        popup.className = 'click-popup';
+        popup.innerText = text;
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 700);
+    }
+
+    function showPopupModal(title, text) {
+        document.getElementById('popup-title').innerText = title;
+        document.getElementById('popup-text').innerText = text;
+        document.getElementById('popup-modal').style.display = 'flex';
+    }
+
+    function closePopup() {
+        document.getElementById('popup-modal').style.display = 'none';
+    }
+
+    function buyClickUpgrade() {
+        if (money >= clickUpgradeCost) {
+            money -= clickUpgradeCost;
+            clickPower *= 2; 
+            clickLevel += 1;
+            clickUpgradeCost *= 2; 
+            updateUI();
+        }
+    }
+
+    function buyPlanet(id) {
+        let p = planets.find(item => item.id === id);
+        if (money >= p.cost) {
+            money -= p.cost;
+            p.count += 1;
+            p.cost = Math.floor(p.cost * p.mult);
+            changeActivePlanetView(p);
+            
+            if (p.stage === 2 && !stage2UnlockedNotified && p.count === 1) {
+                stage2UnlockedNotified = true;
+                showPopupModal("🎉 Tebrikler!", currentLang === 'tr' ? "Tebrikler, Stage 2'ye başarıyla geçtiniz! Yeni nesil galaktik güçler sizi bekliyor." : "Congratulations, you've successfully reached Stage 2!");
+            } else if (p.stage === 3 && !stage3UnlockedNotified && p.count === 1) {
+                stage3UnlockedNotified = true;
+                showPopupModal("🚀 Harika İlerleme!", currentLang === 'tr' ? "Tebrikler, Stage 3'e geçtiniz! Evrenin sınırlarını zorlamaya başladınız." : "Congratulations, you've reached Stage 3!");
+            }
+
+            if (id === 42 && !gameCompletedNotified && p.count === 1) {
+                gameCompletedNotified = true;
+                showPopupModal("🏆 Oyun Tamamlandı!", currentLang === 'tr' ? "Tebrikler! Oyunumuzu başarıyla bitirdiniz. Değerlendirme yaparsanız seviniriz! Sınırsız modda oynamaya devam edebilirsiniz." : "Congratulations! You successfully finished the game. We appreciate your feedback!");
+            }
+
+            updateUI();
+        }
+    }
+
+    function changeActivePlanetView(p) {
+        const planetEl = document.getElementById('planet');
+        activePlanetName = currentLang === 'tr' ? p.nameTr : p.nameEn;
+        document.getElementById('active-planet-name').innerText = activePlanetName;
+        
+        planetEl.style.background = p.color;
+        planetEl.style.boxShadow = `0 0 50px ${p.glow}, inset -20px -20px 35px rgba(0,0,0,0.8)`;
+    }
+
+    function getTotalCPS() {
+        let total = 0;
+        planets.forEach(p => {
+            total += p.count * p.cps;
+        });
+        return total;
+    }
+
+    function updateUI() {
+        const t = langData[currentLang];
+        document.getElementById('money-display').innerText = formatNum(Math.floor(money)) + " 🪙";
+        document.getElementById('cps-display').innerText = `${t.cpsText}: ${formatNum(getTotalCPS())} 🪙`;
+
+        document.getElementById('click-cost').innerText = formatNum(clickUpgradeCost) + " 🪙";
+        document.getElementById('click-lvl').innerText = `${t.level}: ${clickLevel}`;
+
+        planets.forEach(p => {
+            if (p.stage === currentStage) {
+                let pName = currentLang === 'tr' ? p.nameTr : p.nameEn;
+                document.getElementById(`p-name-${p.id}`).innerText = pName;
+                document.getElementById(`p-cost-${p.id}`).innerText = formatNum(p.cost) + " 🪙";
+                document.getElementById(`p-cps-${p.id}`).innerText = (currentLang === 'tr' ? "Saniyede +" : "CPS +") + formatNum(p.cps);
+                document.getElementById(`p-count-${p.id}`).innerText = (currentLang === 'tr' ? "Sahip: " : "Owned: ") + p.count;
+
+                let btn = document.getElementById(`planet-btn-${p.id}`);
+                if (money >= p.cost) {
+                    btn.classList.remove('locked');
+                } else {
+                    btn.classList.add('locked');
+                }
+            }
+        });
+    }
+
+    setInterval(() => {
+        let totalCPS = getTotalCPS();
+        if (totalCPS > 0) {
+            money += totalCPS;
+            updateUI();
+        }
+    }, 1000);
+
+    buildPlanetButtons();
+    updateStaticTexts();
+    updateUI();
+</script>
+
+</body>
+</html>
